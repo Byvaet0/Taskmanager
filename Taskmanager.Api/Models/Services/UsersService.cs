@@ -8,10 +8,10 @@ using Taskmanager.Common.Models;
 
 namespace Taskmanager.Api.Models.Services
 {
-    public class UserService : ICommonService<UserModel>
+    public class UsersService : AbstractionService, ICommonService<UserModel>
     {
         private readonly ApplicationContext _db;
-        public UserService(ApplicationContext db)
+        public UsersService(ApplicationContext db)
         {
             _db = db;
         }
@@ -36,6 +36,12 @@ namespace Taskmanager.Api.Models.Services
         public User GetUser(string login, string password)
         {
             var user = _db.Users.FirstOrDefault(u => u.Email == login && u.Password == password);
+            return user;
+        }
+
+        public User GetUser(string login)
+        {
+            var user = _db.Users.FirstOrDefault(u => u.Email == login);
             return user;
         }
 
@@ -116,7 +122,8 @@ namespace Taskmanager.Api.Models.Services
             }
              return false;
            
-        }
+        } 
+
         public bool CreateMultipleUsers(List<UserModel> userModels)
         {
             return DoAction(delegate()
@@ -127,18 +134,21 @@ namespace Taskmanager.Api.Models.Services
             });
         }
 
-        private bool DoAction(Action action)
+        public UserModel Get(int id)
         {
-            try
-            {
-                action.Invoke();
-                return true;
-            }
-            catch (Exception ex)
-            {
+            User userForUpdate = _db.Users.FirstOrDefault(u => u.Id == id);
+            return userForUpdate?.ToDto();
+        }
 
-                return false;
+        public IEnumerable<UserModel> GetAllByIds(List<int> userIds)
+        {
+            foreach (int id in userIds)
+            {
+                var user = _db.Users.FirstOrDefault(u => u.Id == id).ToDto();
+                yield return user;
             }
         }
+
+        
     }
 }
